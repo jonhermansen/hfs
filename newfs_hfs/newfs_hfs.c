@@ -351,27 +351,12 @@ main(argc, argv)
 	}
 #endif
 
-	if (gPartitionSize != 0) {
-		/*
-		 * If we are given -N, a size, and a device, that's a usage error.
-		 */
-		if (argc != 0)
-			usage();
+	if (argc != 1)
+		usage();
 
-		rawdevice[0] = blkdevice[0] = 0;
-	} else {
-		if (argc != 1)
-			usage();
-
-		special = argv[0];
-		cp = strrchr(special, '/');
-		if (cp != 0)
-			special = cp + 1;
-		if (*special == 'r')
-			special++;
-		(void) snprintf(rawdevice, sizeof(rawdevice), "%sr%s", _PATH_DEV, special);
-		(void) snprintf(blkdevice, sizeof(blkdevice), "%s%s", _PATH_DEV, special);
-	}
+	/* Use the path as-is — works for both device nodes and regular files */
+	(void) strlcpy(rawdevice, argv[0], sizeof(rawdevice));
+	(void) strlcpy(blkdevice, argv[0], sizeof(blkdevice));
 
 	if (gPartitionSize == 0) {
 		/*
@@ -868,30 +853,24 @@ hfs_newfs(char *device)
 	hfsparams_t defaults = {0};
 	UInt64 maxPhysPerIO = 0;
 	
-	if (gPartitionSize) {
-		dip.sectorSize = kBytesPerSector;
-		dip.physTotalSectors = dip.totalSectors = gPartitionSize / kBytesPerSector;
-		dip.physSectorSize = kBytesPerSector;	/* 512-byte sectors */
-		dip.fd = 0;
+	if (gNoCreate) {
+		fso = open( device, O_RDONLY | O_NDELAY, 0 );
 	} else {
-		if (gNoCreate) {
-			fso = open( device, O_RDONLY | O_NDELAY, 0 );
-		} else {
-			fso = open( device, O_RDWR | O_NDELAY, 0 );
-		}
-		if (fso == -1) {
-			return -1;
-		}
+		fso = open( device, O_RDWR | O_NDELAY, 0 );
+	}
+	if (fso == -1)
+		return -1;
 
-		dip.fd = fso;
-		fcntl(fso, F_NOCACHE, 1);
+	dip.fd = fso;
+	fcntl(fso, F_NOCACHE, 1);
 
-		if (fso < 0)
-			fatal("%s: %s", device, strerror(errno));
+	if (fstat( fso, &stbuf) < 0)
+		fatal("%s: %s", device, strerror(errno));
 
-		if (fstat( fso, &stbuf) < 0)
-			fatal("%s: %s", device, strerror(errno));
-
+	if (S_ISREG(stbuf.st_mode)) {
+		dip.physSectorSize = kBytesPerSector;
+		dip.physTotalSectors = stbuf.st_size / kBytesPerSector;
+	} else {
 		if (ioctl(fso, DKIOCGETBLOCKSIZE, &dip.physSectorSize) < 0)
 			fatal("%s: %s", device, strerror(errno));
 
@@ -900,34 +879,31 @@ hfs_newfs(char *device)
 
 		if (ioctl(fso, DKIOCGETBLOCKCOUNT, &dip.physTotalSectors) < 0)
 			fatal("%s: %s", device, strerror(errno));
-
 	}
 
-	dip.physSectorsPerIO = (1024 * 1024) / dip.physSectorSize;  /* use 1M as default */
+	dip.physSectorsPerIO = (1024 * 1024) / dip.physSectorSize;
 
-	if (fso != -1 && ioctl(fso, DKIOCGETMAXBLOCKCOUNTREAD, &maxPhysPerIO) < 0)
-		fatal("%s: %s", device, strerror(errno));
+	if (!S_ISREG(stbuf.st_mode)) {
+		if (ioctl(fso, DKIOCGETMAXBLOCKCOUNTREAD, &maxPhysPerIO) < 0)
+			fatal("%s: %s", device, strerror(errno));
+		if (maxPhysPerIO)
+			dip.physSectorsPerIO = MIN(dip.physSectorsPerIO, maxPhysPerIO);
 
-	if (maxPhysPerIO)
-		dip.physSectorsPerIO = MIN(dip.physSectorsPerIO, maxPhysPerIO);
+		if (ioctl(fso, DKIOCGETMAXBLOCKCOUNTWRITE, &maxPhysPerIO) < 0)
+			fatal("%s: %s", device, strerror(errno));
+		if (maxPhysPerIO)
+			dip.physSectorsPerIO = MIN(dip.physSectorsPerIO, maxPhysPerIO);
 
-	if (fso != -1 && ioctl(fso, DKIOCGETMAXBLOCKCOUNTWRITE, &maxPhysPerIO) < 0)
-		fatal("%s: %s", device, strerror(errno));
+		if (ioctl(fso, DKIOCGETMAXBYTECOUNTREAD, &maxPhysPerIO) < 0)
+			fatal("%s: %s", device, strerror(errno));
+		if (maxPhysPerIO)
+			dip.physSectorsPerIO = MIN(dip.physSectorsPerIO, maxPhysPerIO / dip.physSectorSize);
 
-	if (maxPhysPerIO)
-		dip.physSectorsPerIO = MIN(dip.physSectorsPerIO, maxPhysPerIO);
-
-	if (fso != -1 && ioctl(fso, DKIOCGETMAXBYTECOUNTREAD, &maxPhysPerIO) < 0)
-		fatal("%s: %s", device, strerror(errno));
-
-	if (maxPhysPerIO)
-		dip.physSectorsPerIO = MIN(dip.physSectorsPerIO, maxPhysPerIO / dip.physSectorSize);
-
-	if (fso != -1 && ioctl(fso, DKIOCGETMAXBYTECOUNTWRITE, &maxPhysPerIO) < 0)
-		fatal("%s: %s", device, strerror(errno));
-
-	if (maxPhysPerIO)
-		dip.physSectorsPerIO = MIN(dip.physSectorsPerIO, maxPhysPerIO / dip.physSectorSize);
+		if (ioctl(fso, DKIOCGETMAXBYTECOUNTWRITE, &maxPhysPerIO) < 0)
+			fatal("%s: %s", device, strerror(errno));
+		if (maxPhysPerIO)
+			dip.physSectorsPerIO = MIN(dip.physSectorsPerIO, maxPhysPerIO / dip.physSectorSize);
+	}
 
 	dip.sectorSize = kBytesPerSector;
 	dip.totalSectors = dip.physTotalSectors * dip.physSectorSize / dip.sectorSize;
