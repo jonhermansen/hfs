@@ -80,6 +80,7 @@
 #include	"FileMgrInternal.h"
 #include	"BTreesInternal.h"
 #include	"hfs_cnode.h"
+#include	"hfs_cprotect.h"
 #include	"hfs_dbg.h"
 
 #if HFS_CONFIG_KEY_ROLL
