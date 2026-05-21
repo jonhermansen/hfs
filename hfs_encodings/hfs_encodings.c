@@ -46,8 +46,6 @@
 #include "../core/hfs_macos_defs.h"
 #include "../core/hfs.h"
 
-uint64_t hfs_allocated __attribute__((aligned(8)));
-
 lck_grp_t * encodinglst_lck_grp;
 lck_grp_attr_t * encodinglst_lck_grp_attr;
 lck_attr_t * encodinglst_lck_attr;
@@ -494,7 +492,7 @@ int unicode_to_mac_roman(UniChar *uni_str, u_int32_t unicodeChars, Str31 hfs_str
 
 				case 0x0153: mc = 0xcf; break;	/* oe */
 
-				case 0x0192: mc = 0xc4; break;	/* Ä */
+				case 0x0192: mc = 0xc4; break;	/* ï¿½ */
 
 				case 0x2122: mc = 0xaa; break;	/* TM */
 
