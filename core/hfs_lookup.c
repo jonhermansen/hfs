@@ -80,7 +80,6 @@
 #include <sys/kdebug.h>
 #include <sys/kauth.h>
 #include <sys/namei.h>
-#include <sys/user.h>
 
 #include "hfs.h"
 #include "hfs_catalog.h"

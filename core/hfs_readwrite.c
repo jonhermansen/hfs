@@ -60,6 +60,11 @@
 #include <vm/vm_pageout.h>
 #include <vm/vm_kern.h>
 
+#if XNU_KERNEL_PRIVATE
+#define ubc_create_upl(vp, off, sz, upl, pl, flags) \
+	ubc_create_upl_kernel((vp), (off), (sz), (upl), (pl), (flags), VM_KERN_MEMORY_FILE)
+#endif
+
 #include <IOKit/IOBSD.h>
 
 #include <sys/kdebug.h>

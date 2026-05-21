@@ -47,6 +47,9 @@
 #include <sys/malloc.h>
 #include <kern/task.h>
 #include <kern/thread.h>
+#if XNU_KERNEL_PRIVATE
+#include <mach/vm_param.h>
+#endif
 #include <sys/disk.h>
 #include <sys/kdebug.h>
 #include <sys/kpi_private.h>
@@ -1561,9 +1564,14 @@ size_up_tbuffer(journal *jnl, int tbuffer_size, int phys_blksz)
 	// there is in the machine.
 	//
 	if (def_tbuffer_size == 0) {
-		uint64_t memsize = 0;
+		uint64_t memsize;
+#if XNU_KERNEL_PRIVATE
+		memsize = max_mem;
+#else
+		memsize = 0;
 		size_t l = sizeof(memsize);
 		sysctlbyname("hw.memsize", &memsize, &l, NULL, 0);
+#endif
 
 		if (memsize < (256*1024*1024)) {
 			def_tbuffer_size = DEFAULT_TRANSACTION_BUFFER_SIZE;
