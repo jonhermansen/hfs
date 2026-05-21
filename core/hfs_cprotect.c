@@ -47,12 +47,29 @@
 
 #if XNU_KERNEL_PRIVATE
 #include <sys/cprotect.h>
-#define aks_cred_s cp_cred_s
-#define aks_cred_t cp_cred_t
-#define aks_wrapped_key_s cp_wrapped_key_s
-#define aks_wrapped_key_t cp_wrapped_key_t
-#define aks_raw_key_s cp_raw_key_s
-#define aks_raw_key_t cp_raw_key_t
+struct aks_cred_s {
+	union { ino64_t inode; cp_crypto_id_t crypto_id; };
+	uint32_t volume;
+	pid_t pid;
+	uid_t uid;
+	cp_key_revision_t key_revision;
+	uuid_t volume_uuid;
+};
+struct aks_wrapped_key_s {
+	void *key;
+	unsigned key_len;
+	cp_key_class_t dp_class;
+};
+struct aks_raw_key_s {
+	void *key;
+	unsigned key_len;
+	void *iv_key;
+	unsigned iv_key_len;
+	uint32_t flags;
+};
+typedef struct aks_cred_s *aks_cred_t;
+typedef struct aks_wrapped_key_s *aks_wrapped_key_t;
+typedef struct aks_raw_key_s *aks_raw_key_t;
 #define AKS_RAW_KEY_WRAPPEDKEY 0
 #endif
 
