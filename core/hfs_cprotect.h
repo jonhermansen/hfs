@@ -73,6 +73,9 @@ __BEGIN_DECLS
 #define CP_CLASS(x) ((cp_key_class_t)(CP_EFFECTIVE_CLASSMASK & (x)))
 
 #define CP_CRYPTO_G1	0x00000020
+#ifndef CP_ROOT_CRYPTOG1
+#define CP_ROOT_CRYPTOG1	CP_CRYPTO_G1
+#endif
 
 typedef struct cp_xattr *cp_xattr_t;
 typedef struct cnode * cnode_ptr_t;
