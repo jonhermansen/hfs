@@ -186,4 +186,40 @@ hfs_get_platform_serial_number(char *serial_number_str, uint32_t len)
 		serial_number_str[0] = '\0';
 	return KERN_SUCCESS;
 }
-#endif
+
+#if CONFIG_PROTECT
+#include <sys/cprotect.h>
+
+int
+hfs_unwrap_key(cp_cred_t access, const cp_wrapped_key_t wrapped_key_in,
+    cp_raw_key_t key_out)
+{
+#pragma unused(access, wrapped_key_in, key_out)
+	return ENOTSUP;
+}
+
+int
+hfs_rewrap_key(cp_cred_t access, cp_key_class_t dp_class,
+    const cp_wrapped_key_t wrapped_key_in, cp_wrapped_key_t wrapped_key_out)
+{
+#pragma unused(access, dp_class, wrapped_key_in, wrapped_key_out)
+	return ENOTSUP;
+}
+
+int
+hfs_new_key(cp_cred_t access, cp_key_class_t dp_class,
+    cp_raw_key_t key_out, cp_wrapped_key_t wrapped_key_out)
+{
+#pragma unused(access, dp_class, key_out, wrapped_key_out)
+	return ENOTSUP;
+}
+
+int
+hfs_backup_key(cp_cred_t access, const cp_wrapped_key_t wrapped_key_in,
+    cp_wrapped_key_t wrapped_key_out)
+{
+#pragma unused(access, wrapped_key_in, wrapped_key_out)
+	return ENOTSUP;
+}
+#endif /* CONFIG_PROTECT */
+#endif /* XNU_KERNEL_PRIVATE */

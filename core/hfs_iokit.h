@@ -30,7 +30,7 @@
 #define hfs_iokit_h
 
 #include <sys/cdefs.h>
-#if CONFIG_PROTECT
+#if CONFIG_PROTECT && !XNU_KERNEL_PRIVATE
 #include <AppleKeyStore/AppleKeyStoreFSServices.h>
 #endif
 
@@ -45,6 +45,18 @@ void hfs_iterate_media_with_content(const char *content_uuid_cstring,
 kern_return_t hfs_get_platform_serial_number(char *serial_number_str,
 											 uint32_t len);
 #if CONFIG_PROTECT
+#if XNU_KERNEL_PRIVATE
+#include <sys/cprotect.h>
+int hfs_unwrap_key(cp_cred_t access, const cp_wrapped_key_t wrapped_key_in,
+				   cp_raw_key_t key_out);
+int hfs_rewrap_key(cp_cred_t access, cp_key_class_t dp_class,
+				   const cp_wrapped_key_t wrapped_key_in,
+				   cp_wrapped_key_t wrapped_key_out);
+int hfs_new_key(cp_cred_t access, cp_key_class_t dp_class,
+				cp_raw_key_t key_out, cp_wrapped_key_t wrapped_key_out);
+int hfs_backup_key(cp_cred_t access, const cp_wrapped_key_t wrapped_key_in,
+				   cp_wrapped_key_t wrapped_key_out);
+#else
 int hfs_unwrap_key(aks_cred_t access, const aks_wrapped_key_t wrapped_key_in,
 				   aks_raw_key_t key_out);
 int hfs_rewrap_key(aks_cred_t access, cp_key_class_t dp_class,
@@ -54,7 +66,8 @@ int hfs_new_key(aks_cred_t access, cp_key_class_t dp_class,
 				aks_raw_key_t key_out, aks_wrapped_key_t wrapped_key_out);
 int hfs_backup_key(aks_cred_t access, const aks_wrapped_key_t wrapped_key_in,
 				   aks_wrapped_key_t wrapped_key_out);
-#endif
+#endif /* XNU_KERNEL_PRIVATE */
+#endif /* CONFIG_PROTECT */
 
 __END_DECLS
 

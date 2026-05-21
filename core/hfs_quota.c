@@ -73,6 +73,10 @@
 #include <sys/malloc.h>
 #include <sys/file.h>
 #include <sys/proc.h>
+#if XNU_KERNEL_PRIVATE
+#include <sys/proc_internal.h>
+#define proc_ucred proc_ucred_unsafe
+#endif
 #include <sys/kauth.h>
 #include <sys/vnode.h>
 #include <sys/quota.h>
