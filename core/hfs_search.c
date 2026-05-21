@@ -590,7 +590,7 @@ CheckAccess(ExtendedVCB *theVCBPtr, u_long searchBits, CatalogKey *theKeyPtr, st
 		hfs_unlock(VTOC(vp));
 
 #if CONFIG_MACF
-		if (vp->v_type == VDIR) {
+		if (vnode_vtype(vp) == VDIR) {
 			myErr = mac_vnode_check_readdir(ctx, vp);
 		} else {
 			myErr = mac_vnode_check_stat(ctx, NOCRED, vp);
