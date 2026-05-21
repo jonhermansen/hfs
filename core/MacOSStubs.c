@@ -164,6 +164,8 @@ DebugStr(
 #if XNU_KERNEL_PRIVATE
 #include <kern/kalloc.h>
 
+bool panic_on_assert;
+
 int
 hfs_is_ejectable(const char *cdev_name)
 {
