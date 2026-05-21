@@ -45,6 +45,17 @@
 #include "hfs_cprotect.h"
 #include "hfs_iokit.h"
 
+#if XNU_KERNEL_PRIVATE
+#include <sys/cprotect.h>
+#define aks_cred_s cp_cred_s
+#define aks_cred_t cp_cred_t
+#define aks_wrapped_key_s cp_wrapped_key_s
+#define aks_wrapped_key_t cp_wrapped_key_t
+#define aks_raw_key_s cp_raw_key_s
+#define aks_raw_key_t cp_raw_key_t
+#define AKS_RAW_KEY_WRAPPEDKEY 0
+#endif
+
 #if HFS_CONFIG_KEY_ROLL
 #include "hfs_key_roll.h"
 #endif
