@@ -160,3 +160,30 @@ DebugStr(
 	Debugger(debuggerMsg);
 #endif
 }
+
+#if XNU_KERNEL_PRIVATE
+#include <kern/kalloc.h>
+
+int
+hfs_is_ejectable(const char *cdev_name)
+{
+#pragma unused(cdev_name)
+	return 0;
+}
+
+void
+hfs_iterate_media_with_content(const char *content_uuid_cstring,
+    int (*func)(const char *bsd_name, const char *uuid_str, void *arg),
+    void *arg)
+{
+#pragma unused(content_uuid_cstring, func, arg)
+}
+
+kern_return_t
+hfs_get_platform_serial_number(char *serial_number_str, uint32_t len)
+{
+	if (len > 0)
+		serial_number_str[0] = '\0';
+	return KERN_SUCCESS;
+}
+#endif
