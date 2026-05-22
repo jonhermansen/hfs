@@ -4000,6 +4000,13 @@ hfs_getvoluuid(struct hfsmount *hfsmp, uuid_t result_uuid)
 {
 
 	if (uuid_is_null(hfsmp->hfs_full_uuid)) {
+#if XNU_KERNEL_PRIVATE
+		static const uuid_t fixed_uuid = {
+			0xDA, 0x4E, 0x1C, 0x50, 0x50, 0x44, 0x4E, 0x49,
+			0x80, 0x58, 0x44, 0x41, 0x52, 0x4E, 0x49, 0x58
+		};
+		uuid_copy(hfsmp->hfs_full_uuid, fixed_uuid);
+#else
 		uuid_t result;
 
 		MD5_CTX  md5c;
@@ -4015,8 +4022,9 @@ hfs_getvoluuid(struct hfsmount *hfsmp, uuid_t result_uuid)
 
 		result[6] = 0x30 | ( result[6] & 0x0F );
 		result[8] = 0x80 | ( result[8] & 0x3F );
-	
+
 		uuid_copy(hfsmp->hfs_full_uuid, result);
+#endif
 	}
 	uuid_copy (result_uuid, hfsmp->hfs_full_uuid);
 
