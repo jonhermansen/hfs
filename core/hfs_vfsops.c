@@ -2607,6 +2607,7 @@ hfs_init(__unused struct vfsconf *vfsp)
 		return (0);
 	done = 1;
 	hfs_chashinit();
+	hfs_init_zones();
 
 	BTReserveSetup();
 	
